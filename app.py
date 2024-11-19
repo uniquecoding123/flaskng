@@ -241,17 +241,17 @@ def add_wickets():
 
         players = response.json().get('result')
 
-        if players:  # If player exists, add goals to the current goals
+        if players:  # If player exists, add wickets to the current wickets
             player = players[0]
             player_sys_id = player['sys_id']
-            current_wickets = player['u_wickets'] or 0  # Get the current goals, default to 0 if not available
+            current_wickets = player['u_wickets'] or 0  # Get the current wickets, default to 0 if not available
 
-            # Add the new goals to the current goals
-            new_goals = int(current_wickets) + int(u_wickets)
+            # Add the new wickets to the current wickets
+            new_wickets = int(current_wickets) + int(u_wickets)
 
-            # Update player goals with the new total
-            update_url = f"{servicenow_player_url}/{player_sys_id}"
-            update_payload = {"u_wickets": str(u_wickets)}
+            # Update player wickets with the new total
+            update_url = f"{servicenow_wkt_url}/{player_sys_id}"
+            update_payload = {"u_wickets": str(new_wickets)}
 
             update_response = requests.put(
                 update_url,
@@ -296,12 +296,15 @@ def add_wickets():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+
 @app.route('/get_wickets', methods=['GET'])
 @jwt_required()
 def get_wickets():
     try:
         # Get the logged-in user's sys_id
         user_sys_id = get_jwt_identity()
+
         # Query ServiceNow to get players for the logged-in user
         query_url = f"{servicenow_wkt_url}?sysparm_query=u_user={user_sys_id}"
         response = requests.get(query_url, auth=(servicenow_user, servicenow_pwd), headers=headers)
@@ -317,7 +320,7 @@ def get_wickets():
         if not players:
             return jsonify({"msg": "No players found for the logged-in user"}), 404
 
-        # Extract name and goals, and sort by goals in descending order
+        # Extract name and wickets, and sort by wickets in descending order
         player_data = [{"u_name": player["u_name"], "u_wickets": int(player["u_wickets"])} for player in players]
         sorted_players = sorted(player_data, key=lambda x: x["u_wickets"], reverse=True)
 
@@ -325,6 +328,7 @@ def get_wickets():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 #GET and ADD Highest Individual score
